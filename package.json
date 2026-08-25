@@ -1,0 +1,47 @@
+{
+  "name": "profanity-kit-workspace",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Development workspace for Profanity Kit.",
+  "license": "MIT",
+  "author": {
+    "name": "Abdul Malik",
+    "email": "hello@up2dul.dev",
+    "url": "https://up2dul.dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/up2dul/profanity-kit.git"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "pnpm --filter profanity-kit build",
+    "changeset": "changeset",
+    "changeset:status": "changeset status",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint --type-aware .",
+    "prepare": "lefthook install",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "typecheck": "pnpm --recursive --if-present typecheck"
+  },
+  "devDependencies": {
+    "@changesets/cli": "3.0.1",
+    "@commitlint/cli": "21.2.2",
+    "@commitlint/config-conventional": "21.2.2",
+    "@commitlint/types": "^21.2.0",
+    "lefthook": "2.1.10",
+    "oxfmt": "0.65.0",
+    "oxlint": "1.80.0",
+    "oxlint-tsgolint": "7.0.2001",
+    "tsdown": "0.22.14",
+    "typescript": "7.0.2",
+    "vitest": "4.1.11"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "packageManager": "pnpm@11.23.0"
+}

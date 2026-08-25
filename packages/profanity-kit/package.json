@@ -1,0 +1,46 @@
+{
+  "name": "profanity-kit",
+  "version": "0.0.0",
+  "description": "A lightweight, multilingual profanity detector for JavaScript and TypeScript.",
+  "keywords": [
+    "bad-word",
+    "bad-words",
+    "censorship",
+    "content-moderation",
+    "indonesian",
+    "multilingual",
+    "profanity",
+    "profanity-detector",
+    "profanity-filter",
+    "typescript"
+  ],
+  "homepage": "https://github.com/up2dul/profanity-kit#readme",
+  "bugs": {
+    "url": "https://github.com/up2dul/profanity-kit/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Abdul Malik",
+    "email": "hello@up2dul.dev",
+    "url": "https://up2dul.dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/up2dul/profanity-kit.git",
+    "directory": "packages/profanity-kit"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["before 6am on Monday"],
+  "timezone": "Asia/Jakarta",
+  "rangeStrategy": "pin",
+  "dependencyDashboard": true,
+  "automerge": false,
+  "packageRules": [
+    {
+      "description": "Group Oxc tooling updates",
+      "matchPackageNames": ["oxfmt", "oxlint"],
+      "groupName": "Oxc tooling"
+    },
+    {
+      "description": "Group commit workflow updates",
+      "matchPackageNames": ["@commitlint/**", "lefthook"],
+      "groupName": "commit workflow"
+    },
+    {
+      "description": "Keep major upgrades separate",
+      "matchUpdateTypes": ["major"],
+      "separateMajorMinor": true
+    }
+  ]
+}

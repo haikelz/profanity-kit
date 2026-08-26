@@ -1,6 +1,6 @@
 /**
- * Storage key: `nb-banner-dismissed-{id}`. Value is "0" for permanent,
- * or a future timestamp (ms) for time-limited dismissal.
+ * Storage key: `nb-banner-dismissed-{id}`. Value is "0" for permanent, or a
+ * future timestamp (ms) for time-limited dismissal.
  */
 
 import { mount } from "@cloudflare/nimbus-docs/client";

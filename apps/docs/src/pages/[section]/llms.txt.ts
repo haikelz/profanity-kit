@@ -1,19 +1,19 @@
 /**
- * Per-section /<section>/llms.txt — sub-index files that drill down
- * from the root `/llms.txt` into a named slice of the site's docs.
+ * Per-section /<section>/llms.txt — sub-index files that drill down from the
+ * root `/llms.txt` into a named slice of the site's docs.
  *
  * A "section" is one of two things:
- *   1. A folder inside the primary `docs` collection with more than
- *      one page (e.g. `src/content/docs/<folder>/*` → `/<folder>/llms.txt`).
- *   2. A whole non-primary collection — `api`, `blog`, etc. — which
- *      becomes a single section mounted at `/<collection>/llms.txt`.
  *
- * Both cases produce the same shape at the same URL pattern, so
- * agents follow one rule: every link in `/llms.txt` that ends in
- * `.llms.txt` resolves here.
+ * 1. A folder inside the primary `docs` collection with more than one page (e.g.
+ *    `src/content/docs/<folder>/*` → `/<folder>/llms.txt`).
+ * 2. A whole non-primary collection — `api`, `blog`, etc. — which becomes a single
+ *    section mounted at `/<collection>/llms.txt`.
  *
- * `getIndexedTopLevel()` decides which sections exist and what they
- * contain; this route just renders one file per section it returns.
+ * Both cases produce the same shape at the same URL pattern, so agents follow
+ * one rule: every link in `/llms.txt` that ends in `.llms.txt` resolves here.
+ *
+ * `getIndexedTopLevel()` decides which sections exist and what they contain;
+ * this route just renders one file per section it returns.
  */
 
 import { getIndexedTopLevel, type IndexedEntry } from "@cloudflare/nimbus-docs";
@@ -53,7 +53,9 @@ export async function GET({ props }: { props: SectionProps }) {
 
   for (const item of members) {
     const description = item.description ? ` — ${item.description}` : "";
-    lines.push(`- [${item.title}](${new URL(item.markdownUrl, config.site).href})${description}`);
+    lines.push(
+      `- [${item.title}](${new URL(item.markdownUrl, config.site).href})${description}`
+    );
   }
 
   lines.push("");

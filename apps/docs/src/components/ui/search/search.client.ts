@@ -1,5 +1,9 @@
 import { mount } from "@cloudflare/nimbus-docs/client";
-import type { SearchProvider, SearchResult } from "@cloudflare/nimbus-docs/types";
+import type {
+  SearchProvider,
+  SearchResult,
+} from "@cloudflare/nimbus-docs/types";
+
 import { provider } from "./providers/pagefind";
 
 export interface SearchConfig {
@@ -25,7 +29,9 @@ export function initSearch(config: SearchConfig): SearchInstance {
   let activeController: AbortController | undefined;
 
   function getOptions(): HTMLElement[] {
-    return Array.from(resultsContainer.querySelectorAll<HTMLElement>("[role='option']"));
+    return Array.from(
+      resultsContainer.querySelectorAll<HTMLElement>("[role='option']")
+    );
   }
 
   function updateActive(newIndex: number): void {
@@ -49,12 +55,17 @@ export function initSearch(config: SearchConfig): SearchInstance {
   }
 
   function clearResults(): void {
-    for (const result of resultsContainer.querySelectorAll("[role='option']")) result.remove();
+    for (const result of resultsContainer.querySelectorAll("[role='option']"))
+      result.remove();
     input.setAttribute("aria-expanded", "false");
     input.removeAttribute("aria-activedescendant");
   }
 
-  function resultLink(title: string, href: string, className: string): HTMLAnchorElement {
+  function resultLink(
+    title: string,
+    href: string,
+    className: string
+  ): HTMLAnchorElement {
     const link = document.createElement("a");
     link.href = href;
     link.className = className;
@@ -73,13 +84,14 @@ export function initSearch(config: SearchConfig): SearchInstance {
     const link = resultLink(
       result.title,
       result.url,
-      "block truncate text-sm font-medium text-foreground no-underline focus-visible:outline-none",
+      "block truncate text-sm font-medium text-foreground no-underline focus-visible:outline-none"
     );
     option.appendChild(link);
 
     if (result.snippet) {
       const snippet = document.createElement("p");
-      snippet.className = "mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground";
+      snippet.className =
+        "mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground";
       snippet.innerHTML = result.snippet;
       option.appendChild(snippet);
     }
@@ -92,8 +104,8 @@ export function initSearch(config: SearchConfig): SearchInstance {
           resultLink(
             sub.title,
             sub.url,
-            "block truncate py-0.5 text-xs text-muted-foreground no-underline hover:text-foreground",
-          ),
+            "block truncate py-0.5 text-xs text-muted-foreground no-underline hover:text-foreground"
+          )
         );
       }
       option.appendChild(subList);
@@ -145,7 +157,8 @@ export function initSearch(config: SearchConfig): SearchInstance {
 
       emptyState.style.display = "none";
       input.setAttribute("aria-expanded", "true");
-      for (const result of results) resultsContainer.appendChild(buildResult(result));
+      for (const result of results)
+        resultsContainer.appendChild(buildResult(result));
     } catch {
       if (signal.aborted) return;
       clearResults();
@@ -224,7 +237,9 @@ type SearchDialogElement = HTMLDialogElement & {
 };
 
 function primaryDialog(): SearchDialogElement | null {
-  return document.querySelector<SearchDialogElement>("[data-search-dialog][data-search-ready]");
+  return document.querySelector<SearchDialogElement>(
+    "[data-search-dialog][data-search-ready]"
+  );
 }
 
 // The open shortcut and trigger delegation live on `document`, which survives
@@ -240,13 +255,16 @@ function bindGlobals() {
   globalsBound = true;
 
   document.addEventListener("click", (event) => {
-    const trigger = (event.target as Element | null)?.closest("[data-search-trigger]");
+    const trigger = (event.target as Element | null)?.closest(
+      "[data-search-trigger]"
+    );
     if (!trigger) return;
     primaryDialog()?.__openSearchDialog?.();
   });
 
   document.addEventListener("keydown", (event) => {
-    if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "k") return;
+    if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "k")
+      return;
     const dialog = primaryDialog();
     if (!dialog) return;
     event.preventDefault();
@@ -263,7 +281,9 @@ mount("[data-search-dialog]", (root) => {
   dialog.setAttribute("data-search-ready", "true");
 
   const input = dialog.querySelector<HTMLInputElement>("[data-search-input]");
-  const resultsContainer = dialog.querySelector<HTMLElement>("[data-search-results]");
+  const resultsContainer = dialog.querySelector<HTMLElement>(
+    "[data-search-results]"
+  );
   const emptyState = dialog.querySelector<HTMLElement>("[data-search-empty]");
   if (!input || !resultsContainer || !emptyState) return () => {};
 

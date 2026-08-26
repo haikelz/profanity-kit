@@ -2,11 +2,11 @@
  * Per-page `/<slug>/index.md` — the clean-markdown alternate for every
  * indexable entry of the primary `docs` collection.
  *
- * Non-primary collections (`api`, `blog`, …) mount under their own
- * URL namespace by convention; their `.md` alternates live at the
- * sibling route `pages/<collection>/[...slug]/index.md.ts`. This route
- * filters to the primary collection so multi-collection sites don't
- * generate conflicting `[...slug]` paths at root.
+ * Non-primary collections (`api`, `blog`, …) mount under their own URL
+ * namespace by convention; their `.md` alternates live at the sibling route
+ * `pages/<collection>/[...slug]/index.md.ts`. This route filters to the primary
+ * collection so multi-collection sites don't generate conflicting `[...slug]`
+ * paths at root.
  */
 
 import {
@@ -46,7 +46,9 @@ export async function GET({ props }: { props: SlugProps }) {
   const data = (entry.data ?? {}) as Record<string, unknown>;
   const rawImage = data.socialImage;
   const socialImage =
-    typeof rawImage === "string" && rawImage.length > 0 ? rawImage : config.socialImage;
+    typeof rawImage === "string" && rawImage.length > 0
+      ? rawImage
+      : config.socialImage;
 
   const markdown = renderEntryAsMarkdown(entry);
 
@@ -54,7 +56,9 @@ export async function GET({ props }: { props: SlugProps }) {
     "---",
     `title: ${JSON.stringify(title)}`,
     ...(description ? [`description: ${JSON.stringify(description)}`] : []),
-    ...(socialImage ? [`image: ${JSON.stringify(new URL(socialImage, config.site).href)}`] : []),
+    ...(socialImage
+      ? [`image: ${JSON.stringify(new URL(socialImage, config.site).href)}`]
+      : []),
     ...(version ? [`version: ${JSON.stringify(version)}`] : []),
     "---",
     "",

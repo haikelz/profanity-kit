@@ -132,14 +132,18 @@ Creates an immutable, reusable detector instance. The root and `/core` entry poi
 Root entry, fixed to English:
 
 ```ts
-declare function createDetector(options?: DetectorOptions): ProfanityDetector<"en">;
+declare function createDetector(
+  options?: DetectorOptions
+): ProfanityDetector<"en">;
 ```
 
 Dictionary-free `/core` entry, requiring explicit languages:
 
 ```ts
-declare function createDetector<const TLanguages extends readonly LanguagePack[]>(
-  options: LanguageDetectorOptions<TLanguages>,
+declare function createDetector<
+  const TLanguages extends readonly LanguagePack[],
+>(
+  options: LanguageDetectorOptions<TLanguages>
 ): ProfanityDetector<LanguageCodeOf<TLanguages[number]>>;
 ```
 

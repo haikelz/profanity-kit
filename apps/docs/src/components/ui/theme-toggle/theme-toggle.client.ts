@@ -1,5 +1,5 @@
 /**
- * theme-toggle.client.ts — light/dark toggle. Writes pref to localStorage
+ * Theme-toggle.client.ts — light/dark toggle. Writes pref to localStorage
  * ("ui-mode"); BaseLayout's pre-paint script owns DOM application so view
  * transitions, OS changes, and cross-tab edits stay in sync.
  */
@@ -14,7 +14,8 @@ declare global {
 
 function initThemeToggle(button: HTMLElement): () => void {
   function handleClick() {
-    const isDark = document.documentElement.getAttribute("data-mode") === "dark";
+    const isDark =
+      document.documentElement.getAttribute("data-mode") === "dark";
     try {
       localStorage.setItem("ui-mode", isDark ? "light" : "dark");
     } catch {

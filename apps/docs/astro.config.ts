@@ -1,7 +1,9 @@
-import { defineConfig } from "astro/config";
-import tailwindcss from "@tailwindcss/vite";
-import nimbus, { defineConfig as defineNimbusConfig } from "@cloudflare/nimbus-docs";
+import nimbus, {
+  defineConfig as defineNimbusConfig,
+} from "@cloudflare/nimbus-docs";
 import { tableScroll } from "@cloudflare/nimbus-docs/markdown";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "astro/config";
 
 const nimbusConfig = defineNimbusConfig({
   // CHANGE_ME: your site's canonical origin (no trailing slash). Drives

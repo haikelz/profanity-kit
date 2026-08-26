@@ -1,5 +1,6 @@
-import { getCollection } from "astro:content";
 import { OGImageRoute } from "astro-og-canvas";
+import { getCollection } from "astro:content";
+
 import { ogCardConfig } from "./_og-card-config";
 
 const entries = await getCollection("docs", (entry) => !entry.data.draft);
@@ -11,7 +12,7 @@ const pages = Object.fromEntries(
       title: entry.data.title,
       description: entry.data.description ?? "",
     },
-  ]),
+  ])
 );
 
 export const { getStaticPaths, GET } = await OGImageRoute({

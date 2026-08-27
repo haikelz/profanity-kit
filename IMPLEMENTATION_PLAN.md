@@ -1,6 +1,6 @@
 # Profanity Kit — Implementation Plan
 
-**Status:** Proposed MVP sequence
+**Status:** Phase 0 complete; Phase 1 is next
 
 The plan converts the API contract and ADRs into small validation gates. A phase
 is complete only when its evidence exists; later phases may revise provisional
@@ -8,17 +8,16 @@ ADRs when implementation data disagrees with assumptions.
 
 ## Phase 0 — Repository foundation
 
-- **Status:** Local foundation complete; GitHub Actions deferred by project
-  owner.
+- **Status:** Complete.
 - [x] Initialize the pnpm workspace and private docs app boundary.
 - [x] Configure exact tool versions, formatting, linting, type checking, testing,
       Lefthook, commitlint, Changesets, and Renovate.
 - [x] Add MIT licensing and contribution guidance.
-- [ ] Create minimal GitHub Actions quality and package workflows (deferred).
+- [x] Create minimal GitHub Actions quality and package workflows.
 
 **Gate:** `pnpm install --frozen-lockfile`, `pnpm check`, and the package build
-succeed locally; the publishable workspace has no runtime dependencies. CI
-verification remains pending until GitHub Actions is added.
+succeed locally; the publishable workspace has no runtime dependencies. The
+quality and package workflows enforce the same checks in CI.
 
 ## Phase 1 — Matcher proof of concept
 

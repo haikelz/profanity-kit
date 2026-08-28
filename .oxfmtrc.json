@@ -23,6 +23,6 @@
     "**/.astro/**",
     "**/.agents/**"
   ],
-  "svelte": false,
+  "svelte": true,
   "jsdoc": true
 }

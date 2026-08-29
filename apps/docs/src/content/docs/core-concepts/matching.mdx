@@ -28,3 +28,11 @@ inverse. Both are closure-backed and safe as callbacks:
 ```ts
 comments.filter(detector.isClean);
 ```
+
+## Scope
+
+Profanity Kit is a profanity detection toolkit, not a complete content
+moderation system. It intentionally does not provide phrase matching,
+substring matching, aggressive leetspeak expansion, or contextual moderation.
+Create a detector with the configuration you need and apply human and
+product-specific moderation policy around its results.

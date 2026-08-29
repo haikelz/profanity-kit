@@ -4,10 +4,10 @@ on:
     branches:
       - main
     paths:
-      - apps/docs
+      - "apps/docs/**"
       - "!apps/docs/AGENTS.md"
       - "!apps/docs/tsconfig.json"
-      - .github/workflows/deploy-docs.yaml
+      - ".github/workflows/deploy-docs.yaml"
 
 jobs:
   deploy:

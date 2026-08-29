@@ -36,11 +36,11 @@ jobs:
       - name: Verify generated dictionaries
         run: pnpm dictionary:check
 
-      - name: Run quality checks
-        run: pnpm check
-
       - name: Build package for documentation
         run: pnpm build
+
+      - name: Run quality checks
+        run: pnpm check
 
       - name: Build documentation
         run: pnpm --filter profanity-kit-docs build

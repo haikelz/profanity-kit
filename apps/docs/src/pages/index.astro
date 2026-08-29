@@ -1,46 +1,71 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Header from "../components/Header.astro";
-import { config } from "virtual:nimbus/config";
+import DocsLayout from "../layouts/DocsLayout.astro";
+import {
+  getBreadcrumbs,
+  getEditUrl,
+  getLastUpdated,
+  getPrevNext,
+  getRouteFlags,
+  getSidebar,
+  getTOC,
+} from "@cloudflare/nimbus-docs";
+import { getCollection, render } from "astro:content";
+import { components } from "../components";
+
+export const prerender = true;
+
+const entries = await getCollection("docs");
+const entry = entries.find((candidate) => candidate.id === "index");
+
+if (!entry) {
+  throw new Error("The docs home entry is missing: content/docs/index.mdx");
+}
+
+const { Content, headings } = await render(entry);
+const currentSlug = "/";
+const { sidebar: sidebarOn, tableOfContents: tocOn } =
+  await getRouteFlags(entry);
+const sidebar = sidebarOn
+  ? await getSidebar(currentSlug, { collection: entry.collection })
+  : false;
+const prevNext = await getPrevNext(currentSlug, {
+  sidebarTree: sidebar === false ? [] : sidebar,
+  overrides: { prev: entry.data.prev, next: entry.data.next },
+});
+const breadcrumbs = await getBreadcrumbs(currentSlug, {
+  collection: entry.collection,
+});
+const editUrl = await getEditUrl(entry);
+const lastUpdated = entry.data.lastUpdated ?? (await getLastUpdated(entry));
+const tocConfig = entry.data.tableOfContents;
+const toc =
+  tocOn && tocConfig !== false ? getTOC(headings, tocConfig) : false;
+const markdownUrl = Astro.site
+  ? new URL("/index.md", Astro.site).href
+  : "/index.md";
+const socialImage = entry.data.socialImage ?? "/og/index.png";
 ---
 
-<BaseLayout title={config.title} description={config.description}>
-  <div class="flex flex-col min-h-screen">
-    <Header />
-    <main id="main-content" tabindex="-1" class="flex-1 mx-auto max-w-2xl w-full px-6 py-24">
-      <h1
-        class="text-foreground leading-tight"
-        style="font-size: var(--nb-h1-size); font-weight: var(--nb-h1-weight); letter-spacing: var(--nb-h1-tracking);"
-      >
-        {config.title}
-      </h1>
-      <p class="mt-2 text-[1.0625rem] text-muted-foreground leading-relaxed">
-        {config.description}
-      </p>
-
-      <div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <a
-          href="/welcome"
-          class="block rounded-lg border border-border p-4 transition-colors hover:border-border-strong no-underline"
-        >
-          <div class="font-medium text-foreground">Welcome</div>
-          <div class="mt-0.5 text-sm text-muted-foreground">Start here</div>
-        </a>
-        <a
-          href="/getting-started"
-          class="block rounded-lg border border-border p-4 transition-colors hover:border-border-strong no-underline"
-        >
-          <div class="font-medium text-foreground">Getting Started</div>
-          <div class="mt-0.5 text-sm text-muted-foreground">Install + configure</div>
-        </a>
-        <a
-          href="/components"
-          class="block rounded-lg border border-border p-4 transition-colors hover:border-border-strong no-underline"
-        >
-          <div class="font-medium text-foreground">Components</div>
-          <div class="mt-0.5 text-sm text-muted-foreground">See them in action</div>
-        </a>
-      </div>
-    </main>
-  </div>
-</BaseLayout>
+<DocsLayout
+  title={entry.data.title}
+  description={entry.data.description}
+  sidebar={sidebar}
+  headings={toc}
+  breadcrumbs={breadcrumbs}
+  prevNext={prevNext}
+  mode={entry.data.mode}
+  banner={entry.data.banner}
+  head={entry.data.head}
+  searchable={entry.data.searchable}
+  noindex={entry.data.noindex}
+  markdownUrl={markdownUrl}
+  socialImage={socialImage}
+  lastUpdated={lastUpdated}
+  editUrl={editUrl}
+  draft={entry.data.draft}
+  audience={entry.data.audience}
+  collection={entry.collection}
+  entryId={entry.id}
+>
+  <Content components={components} />
+</DocsLayout>

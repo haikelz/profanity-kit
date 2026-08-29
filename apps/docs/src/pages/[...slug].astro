@@ -12,9 +12,13 @@ import {
   getTOC,
 } from "@cloudflare/nimbus-docs";
 import { components } from "../components";
+import type { GetStaticPaths } from "astro";
 
 export const prerender = true;
-export const getStaticPaths = getDocsStaticPaths;
+export const getStaticPaths: GetStaticPaths = async (options) =>
+  (await getDocsStaticPaths(options)).filter(
+    (path) => path.params.slug !== "index"
+  );
 
 const { entry, Content, headings } = await getDocsPageProps(Astro);
 
@@ -31,7 +35,9 @@ const prevNext = await getPrevNext(currentSlug, {
 });
 // Pass `collection` so versioned pages (docs-<v>) get version-prefixed
 // breadcrumb hrefs — parity with the getSidebar call above.
-const breadcrumbs = await getBreadcrumbs(currentSlug, { collection: entry.collection });
+const breadcrumbs = await getBreadcrumbs(currentSlug, {
+  collection: entry.collection,
+});
 const editUrl = await getEditUrl(entry);
 // Frontmatter wins; git is the fallback.
 const lastUpdated = entry.data.lastUpdated ?? await getLastUpdated(entry);

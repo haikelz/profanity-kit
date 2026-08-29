@@ -10,14 +10,38 @@ const nimbusConfig = defineNimbusConfig({
   // CHANGE_ME: your site's canonical origin (no trailing slash). Drives
   // canonical URLs, absolute OG image URLs, robots.txt, sitemap, and the
   // links in /llms.txt — leaving the placeholder breaks all of them.
-  site: "https://profanity-kit.dev",
+  site: "https://profanity-kit.pages.dev",
   // CHANGE_ME: your project's name — used for <title>, the home H1, and OG.
   title: "Profanity Kit",
   // CHANGE_ME: a one-line description of your docs — used for meta + OG.
   description: "A small, Unicode-aware profanity detector for TypeScript.",
   locale: "en",
-  github: null,
-  socialImageAlt: "Nimbus documentation preview",
+  github: "https://github.com/up2dul/profanity-kit",
+  editPattern:
+    "https://github.com/up2dul/profanity-kit/edit/main/apps/docs/src/content/{path}",
+  socialImageAlt: "Profanity Kit documentation preview",
+  sidebar: {
+    items: [
+      "quick-start",
+      "playground",
+      {
+        label: "Core Concepts",
+        autogenerate: { directory: "core-concepts" },
+      },
+      {
+        label: "Guides",
+        autogenerate: { directory: "guides" },
+      },
+      {
+        label: "Resources",
+        autogenerate: { directory: "resources" },
+      },
+      {
+        label: "API References",
+        autogenerate: { directory: "api" },
+      },
+    ],
+  },
 });
 
 export default defineConfig({

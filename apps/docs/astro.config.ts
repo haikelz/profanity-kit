@@ -18,7 +18,7 @@ const nimbusConfig = defineNimbusConfig({
   locale: "en",
   github: "https://github.com/up2dul/profanity-kit",
   editPattern:
-    "https://github.com/up2dul/profanity-kit/edit/main/apps/docs/src/content/{path}",
+    "https://github.com/up2dul/profanity-kit/edit/main/apps/docs/{path}",
   socialImageAlt: "Profanity Kit documentation preview",
   sidebar: {
     items: [

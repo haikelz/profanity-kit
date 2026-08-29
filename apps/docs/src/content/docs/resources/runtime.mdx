@@ -1,0 +1,16 @@
+---
+title: Runtime & Bundle Size
+description: Supported runtimes and verified package and bundle behavior.
+sidebar:
+  order: 9
+---
+
+Profanity Kit officially supports Node.js `>=22.13.0` and modern browsers under
+the Baseline Widely Available policy. It publishes one ESM implementation with
+named exports; modern Node can use the same files from `require()` when the
+graph has no top-level await.
+
+The root entry includes English. `/core` is dictionary-free, and explicit
+language imports let bundlers omit unused packs. CI verifies packed consumers,
+raw/minified/gzip/Brotli bundle measurements, and runtime performance budgets;
+see the checked-in reports under `reports/` for current evidence.

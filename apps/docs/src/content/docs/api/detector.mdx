@@ -1,0 +1,249 @@
+---
+title: Detector API
+description: Factories and methods for creating, querying, and filtering detectors.
+sidebar:
+  order: 11
+---
+
+Import from `profanity-kit` for bundled English, or from
+`profanity-kit/core` to select language packs. Both return an immutable
+[`ProfanityDetector`](/api/types#profanitydetector).
+
+## `createDetector()` from `profanity-kit`
+
+Creates a detector with the English pack already configured.
+
+### Signature
+
+```ts
+function createDetector(options?: DetectorOptions): ProfanityDetector<"en">;
+```
+
+### Parameters
+
+| Parameter | Type                                            | Required | Description                                                    |
+| --------- | ----------------------------------------------- | -------- | -------------------------------------------------------------- |
+| `options` | [`DetectorOptions`](/api/types#detectoroptions) | No       | Custom words and default filtering behavior. Defaults to `{}`. |
+
+### Returns
+
+An immutable `ProfanityDetector<"en">`.
+
+### Throws
+
+Throws [`ProfanityKitError`](/api/types#profanitykiterror) for invalid dictionary
+entries or a replacement that is not exactly one Unicode code point.
+
+### Example
+
+```ts
+import { createDetector } from "profanity-kit";
+
+const detector = createDetector();
+detector.check("that is shit"); // => true
+detector.isClean("that is fine"); // => true
+detector.filter("that is shit"); // => "that is ****"
+```
+
+## `createDetector()` from `profanity-kit/core`
+
+Creates a detector from explicit language packs. Core contains no built-in
+dictionary, so unused language data can stay out of the bundle.
+
+### Signature
+
+```ts
+function createDetector<const TLanguages extends readonly LanguagePack[]>(
+  options: LanguageDetectorOptions<TLanguages>
+): ProfanityDetector<LanguageCodeOf<TLanguages[number]>>;
+```
+
+### Parameters
+
+| Parameter | Type                                                                        | Required | Description                                        |
+| --------- | --------------------------------------------------------------------------- | -------- | -------------------------------------------------- |
+| `options` | [`LanguageDetectorOptions<TLanguages>`](/api/types#languagedetectoroptions) | Yes      | A non-empty language collection plus custom rules. |
+
+### Returns
+
+An immutable detector whose language union is inferred from the packs. For
+example, `[english, indonesian]` yields
+`ProfanityDetector<"en" | "id">`.
+
+### Throws
+
+Throws `ProfanityKitError` when:
+
+- `languages` is missing, not an array, or empty.
+- A pack, locale, or dictionary word is invalid.
+- A blocklist or allowlist entry is not a non-empty string.
+- `replacement` is not exactly one Unicode code point.
+
+### Example
+
+```ts
+import { createDetector } from "profanity-kit/core";
+import { indonesian } from "profanity-kit/languages/id";
+
+const detector = createDetector({ languages: [indonesian] });
+detector.check("dasar goblok"); // => true
+detector.filter("dasar goblok"); // => "dasar ******"
+```
+
+## `check()`
+
+Stops at the first whole-word match.
+
+### Signature
+
+```ts
+check(input: string): boolean;
+```
+
+### Parameters
+
+| Parameter | Type     | Required | Description      |
+| --------- | -------- | -------- | ---------------- |
+| `input`   | `string` | Yes      | Text to inspect. |
+
+### Returns
+
+`true` when at least one match exists; otherwise `false`.
+
+### Throws
+
+Throws `TypeError` at runtime when `input` is not a string.
+
+### Example
+
+```ts
+detector.check("what the shit"); // => true
+detector.check("ship the update"); // => false
+```
+
+## `isClean()`
+
+The readable inverse of `check()`. It is callback-safe.
+
+### Signature
+
+```ts
+isClean(input: string): boolean;
+```
+
+### Parameters
+
+| Parameter | Type     | Required | Description      |
+| --------- | -------- | -------- | ---------------- |
+| `input`   | `string` | Yes      | Text to inspect. |
+
+### Returns
+
+`true` when no match exists; otherwise `false`.
+
+### Throws
+
+Throws `TypeError` at runtime when `input` is not a string.
+
+### Example
+
+```ts
+detector.isClean("ready to publish"); // => true
+detector.isClean("what the shit"); // => false
+const publishable = comments.filter(detector.isClean);
+```
+
+## `findAll()`
+
+Returns every match, including repetitions, in source order.
+
+### Signature
+
+```ts
+findAll(input: string): ProfanityMatch<TLanguage>[];
+```
+
+### Parameters
+
+| Parameter | Type     | Required | Description              |
+| --------- | -------- | -------- | ------------------------ |
+| `input`   | `string` | Yes      | Text to scan completely. |
+
+### Returns
+
+An array of [`ProfanityMatch`](/api/types#profanitymatch) objects, or `[]` when
+nothing matches.
+
+### Throws
+
+Throws `TypeError` at runtime when `input` is not a string.
+
+### Example
+
+```ts
+const matches = detector.findAll("shit, shit!");
+```
+
+**Output**
+
+```ts
+[
+  {
+    value: "shit",
+    normalized: "shit",
+    start: 0,
+    end: 4,
+    languages: ["en"],
+    source: "dictionary",
+  },
+  {
+    value: "shit",
+    normalized: "shit",
+    start: 6,
+    end: 10,
+    languages: ["en"],
+    source: "dictionary",
+  },
+];
+```
+
+## `filter()`
+
+Replaces matches while preserving punctuation, whitespace, and unmatched text.
+
+### Signature
+
+```ts
+filter(input: string, options?: FilterOptions): string;
+```
+
+### Parameters
+
+| Parameter | Type                                        | Required | Description               |
+| --------- | ------------------------------------------- | -------- | ------------------------- |
+| `input`   | `string`                                    | Yes      | Text to filter.           |
+| `options` | [`FilterOptions`](/api/types#filteroptions) | No       | Overrides this call only. |
+
+#### `options`
+
+| Property      | Type     | Default              | Description                                        |
+| ------------- | -------- | -------------------- | -------------------------------------------------- |
+| `replacement` | `string` | Detector replacement | One Unicode code point repeated across each match. |
+
+### Returns
+
+A filtered string, or the unchanged input when there are no matches.
+
+### Throws
+
+- `TypeError` when `input` is not a string.
+- `ProfanityKitError` with `INVALID_REPLACEMENT` for an invalid per-call replacement.
+
+### Example
+
+```ts
+const detector = createDetector({ replacement: "•" });
+detector.filter("hide this shit"); // => "hide this ••••"
+detector.filter("hide this shit", { replacement: "😀" });
+// => "hide this 😀😀😀😀"
+```

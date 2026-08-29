@@ -1,0 +1,50 @@
+---
+title: Integrations
+description: Add Profanity Kit to common validation libraries.
+sidebar:
+  order: 8
+---
+
+## Zod
+
+```ts
+import { z } from "zod";
+import { createDetector } from "profanity-kit";
+
+const detector = createDetector();
+const cleanComment = z.string().refine(detector.isClean, {
+  message: "Please remove prohibited language.",
+});
+```
+
+## Valibot
+
+```ts
+import * as v from "valibot";
+import { createDetector } from "profanity-kit";
+
+const detector = createDetector();
+const cleanComment = v.pipe(
+  v.string(),
+  v.check(detector.isClean, "Please remove prohibited language.")
+);
+```
+
+## Yup
+
+```ts
+import * as yup from "yup";
+import { createDetector } from "profanity-kit";
+
+const detector = createDetector();
+const cleanComment = yup
+  .string()
+  .test(
+    "clean-language",
+    "Please remove prohibited language.",
+    detector.isClean
+  );
+```
+
+The detector methods are callback-safe, so each validator can call
+`detector.isClean` directly without binding a `this` context.

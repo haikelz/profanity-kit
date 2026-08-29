@@ -1,0 +1,216 @@
+---
+title: Types
+description: TypeScript types and errors exposed by Profanity Kit.
+sidebar:
+  order: 12
+---
+
+## `DetectorOptions`
+
+Options shared by both detector factories.
+
+```ts
+interface DetectorOptions {
+  readonly blockList?: readonly string[];
+  readonly allowList?: readonly string[];
+  readonly replacement?: string;
+}
+```
+
+| Property      | Type                | Default | Description                                           |
+| ------------- | ------------------- | ------- | ----------------------------------------------------- |
+| `blockList`   | `readonly string[]` | `[]`    | Extra whole words to detect with `source: "custom"`.  |
+| `allowList`   | `readonly string[]` | `[]`    | Words to allow, including pack and blocklist entries. |
+| `replacement` | `string`            | `"*"`   | One Unicode code point used by `filter()`.            |
+
+Entries must be non-empty strings. Configuration is snapshotted at creation;
+later mutations to source arrays do not affect the detector.
+
+## `LanguageDetectorOptions`
+
+Options for `createDetector()` from `profanity-kit/core`.
+
+```ts
+interface LanguageDetectorOptions<
+  TLanguages extends readonly LanguagePack[],
+> extends DetectorOptions {
+  readonly languages: TLanguages;
+}
+```
+
+Includes every [`DetectorOptions`](#detectoroptions) property.
+
+| Property    | Type         | Required | Description                                          |
+| ----------- | ------------ | -------- | ---------------------------------------------------- |
+| `languages` | `TLanguages` | Yes      | A non-empty readonly array or tuple of active packs. |
+
+The tuple determines the returned detector's language union.
+
+```ts
+const detector = createDetector({ languages: [english, indonesian] });
+// ProfanityDetector<"en" | "id">
+```
+
+## `FilterOptions`
+
+Overrides filtering behavior for one call.
+
+```ts
+interface FilterOptions {
+  readonly replacement?: string;
+}
+```
+
+| Property      | Type     | Default              | Description                                        |
+| ------------- | -------- | -------------------- | -------------------------------------------------- |
+| `replacement` | `string` | Detector replacement | One Unicode code point repeated across each match. |
+
+```ts
+detector.filter("shit", { replacement: "#" }); // => "####"
+```
+
+## `ProfanityDetector`
+
+The immutable object returned by either factory.
+
+```ts
+interface ProfanityDetector<TLanguage extends string = string> {
+  readonly check: (input: string) => boolean;
+  readonly isClean: (input: string) => boolean;
+  readonly findAll: (input: string) => ProfanityMatch<TLanguage>[];
+  readonly filter: (input: string, options?: FilterOptions) => string;
+}
+```
+
+| Type parameter | Constraint | Default  | Description                             |
+| -------------- | ---------- | -------- | --------------------------------------- |
+| `TLanguage`    | `string`   | `string` | Codes that can appear in match results. |
+
+| Property  | Type                                                 | Description                                |
+| --------- | ---------------------------------------------------- | ------------------------------------------ |
+| `check`   | `(input: string) => boolean`                         | Reports whether a match exists.            |
+| `isClean` | `(input: string) => boolean`                         | Reports whether no match exists.           |
+| `findAll` | `(input: string) => ProfanityMatch<TLanguage>[]`     | Returns all matches in source order.       |
+| `filter`  | `(input: string, options?: FilterOptions) => string` | Replaces matches and preserves other text. |
+
+See [Detector API](/api/detector) for method parameters, returns, errors, and examples.
+
+## `ProfanityMatch`
+
+One detected whole-word occurrence in the original input.
+
+```ts
+interface ProfanityMatch<TLanguage extends string = string> {
+  readonly value: string;
+  readonly normalized: string;
+  readonly start: number;
+  readonly end: number;
+  readonly languages: readonly TLanguage[];
+  readonly source: "dictionary" | "custom";
+}
+```
+
+| Property     | Type                       | Description                                       |
+| ------------ | -------------------------- | ------------------------------------------------- |
+| `value`      | `string`                   | Exact text from the input.                        |
+| `normalized` | `string`                   | NFC-normalized, lowercased match value.           |
+| `start`      | `number`                   | Inclusive UTF-16 code-unit offset.                |
+| `end`        | `number`                   | Exclusive UTF-16 code-unit offset.                |
+| `languages`  | `readonly TLanguage[]`     | Matching pack codes; empty for blocklist matches. |
+| `source`     | `"dictionary" \| "custom"` | Origin of the match.                              |
+
+## `LanguagePack`
+
+A versioned dictionary with a stable language code.
+
+```ts
+interface LanguagePack<TCode extends string = string> {
+  readonly code: TCode;
+  readonly name: string;
+  readonly version: string;
+  readonly words: readonly string[];
+  readonly normalization?: LanguagePackNormalization;
+}
+```
+
+| Property        | Type                                                      | Required | Description                          |
+| --------------- | --------------------------------------------------------- | -------- | ------------------------------------ |
+| `code`          | `TCode`                                                   | Yes      | Non-empty identifier such as `"en"`. |
+| `name`          | `string`                                                  | Yes      | Non-empty human-readable name.       |
+| `version`       | `string`                                                  | Yes      | Non-empty dictionary version.        |
+| `words`         | `readonly string[]`                                       | Yes      | Non-empty whole-word entries.        |
+| `normalization` | [`LanguagePackNormalization`](#languagepacknormalization) | No       | Locale-aware casing settings.        |
+
+## `LanguagePackNormalization`
+
+```ts
+interface LanguagePackNormalization {
+  readonly caseLocale?: string;
+}
+```
+
+| Property     | Type     | Default                 | Description                                                   |
+| ------------ | -------- | ----------------------- | ------------------------------------------------------------- |
+| `caseLocale` | `string` | Default locale behavior | Valid locale passed to `toLocaleLowerCase()`, such as `"tr"`. |
+
+## `LanguageCodeOf`
+
+Extracts a pack's language-code type. It is exported from
+`profanity-kit/core`; factory inference usually makes direct use unnecessary.
+
+```ts
+type LanguageCodeOf<TPack extends LanguagePack> = TPack["code"];
+
+type Supported = LanguageCodeOf<typeof english | typeof indonesian>;
+// "en" | "id"
+```
+
+| Type parameter | Constraint     | Description                                 |
+| -------------- | -------------- | ------------------------------------------- |
+| `TPack`        | `LanguagePack` | Pack or pack union whose code is extracted. |
+
+## `ProfanityKitError`
+
+An `Error` subclass thrown synchronously for invalid configuration or an
+invalid per-call replacement.
+
+```ts
+class ProfanityKitError extends Error {
+  readonly code: ProfanityKitErrorCode;
+}
+```
+
+| Property  | Type                                              | Description                        |
+| --------- | ------------------------------------------------- | ---------------------------------- |
+| `name`    | `"ProfanityKitError"`                             | Identifies the error class.        |
+| `message` | `string`                                          | Human-readable validation failure. |
+| `code`    | [`ProfanityKitErrorCode`](#profanitykiterrorcode) | Stable machine-readable code.      |
+
+```ts
+import { createDetector, ProfanityKitError } from "profanity-kit";
+
+try {
+  createDetector({ replacement: "xx" });
+} catch (error) {
+  if (error instanceof ProfanityKitError) {
+    console.log(error.code); // => "INVALID_REPLACEMENT"
+  }
+}
+```
+
+## `ProfanityKitErrorCode`
+
+```ts
+type ProfanityKitErrorCode =
+  | "INVALID_LANGUAGE_PACK"
+  | "EMPTY_LANGUAGE_LIST"
+  | "INVALID_DICTIONARY_ENTRY"
+  | "INVALID_REPLACEMENT";
+```
+
+| Code                       | Meaning                                                 |
+| -------------------------- | ------------------------------------------------------- |
+| `INVALID_LANGUAGE_PACK`    | The collection, a pack field, or its locale is invalid. |
+| `EMPTY_LANGUAGE_LIST`      | The core factory received no packs.                     |
+| `INVALID_DICTIONARY_ENTRY` | A list or pack word is not a non-empty string.          |
+| `INVALID_REPLACEMENT`      | A replacement is not one Unicode code point.            |

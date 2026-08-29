@@ -1,0 +1,122 @@
+---
+title: Customization
+description: Add application rules, allow exceptions, and control filtered output.
+sidebar:
+  order: 7
+---
+
+Detector options layer application policy over language dictionaries.
+Configuration is immutable, so create a new detector when rules change.
+
+## Add blocked words
+
+Use `blockList` for product terms or community slang outside a language pack.
+These whole-word matches have `source: "custom"` and no language codes.
+
+```ts
+import { createDetector } from "profanity-kit";
+
+const detector = createDetector({ blockList: ["internalterm"] });
+
+detector.check("avoid internalterm here"); // => true
+detector.filter("avoid internalterm here");
+// => "avoid ************ here"
+```
+
+It matches `internalterm!`, but not `internalterms`.
+
+## Allow a dictionary word
+
+Use `allowList` when a dictionary word is acceptable in your context. It has
+the highest precedence and suppresses both pack and blocklist matches.
+
+```ts
+const detector = createDetector({ allowList: ["shit"] });
+
+detector.check("shit happens"); // => false
+detector.filter("shit happens"); // => "shit happens"
+```
+
+The exception applies only to this detector instance.
+
+## Change the default replacement
+
+Set `replacement` when every `filter()` call should use something other than
+`*`. It must be exactly one Unicode code point, including emoji.
+
+```ts
+const detector = createDetector({ replacement: "•" });
+detector.filter("hide the shit"); // => "hide the ••••"
+```
+
+## Override one call
+
+Pass a replacement to `filter()` for a one-time override. Later calls continue
+using the detector default.
+
+```ts
+const detector = createDetector({ replacement: "•" });
+
+detector.filter("hide the shit", { replacement: "#" });
+// => "hide the ####"
+detector.filter("hide the shit");
+// => "hide the ••••"
+```
+
+## Combine packs and rules
+
+The core factory can apply one policy across several dictionaries. Pack words
+keep language codes; blocklist words remain language-neutral.
+
+```ts
+import { createDetector } from "profanity-kit/core";
+import { english } from "profanity-kit/languages/en";
+import { indonesian } from "profanity-kit/languages/id";
+
+const detector = createDetector({
+  languages: [english, indonesian],
+  blockList: ["productterm"],
+  allowList: ["shit"],
+});
+
+detector.check("shit"); // => false (allowlist wins)
+detector.check("goblok"); // => true (Indonesian pack)
+detector.check("productterm"); // => true (custom blocklist)
+```
+
+## Create a custom language pack
+
+A reusable dictionary should carry a stable code, name, and version. Using
+`satisfies` validates its shape while preserving the literal code type.
+
+```ts
+import { createDetector, type LanguagePack } from "profanity-kit/core";
+
+const community = {
+  code: "community",
+  name: "Community terminology",
+  version: "1.0.0",
+  words: ["exampleword"],
+} as const satisfies LanguagePack;
+
+const detector = createDetector({ languages: [community] });
+const matches = detector.findAll("Flag exampleword.");
+```
+
+**Output**
+
+```ts
+[
+  {
+    value: "exampleword",
+    normalized: "exampleword",
+    start: 5,
+    end: 16,
+    languages: ["community"],
+    source: "dictionary",
+  },
+];
+```
+
+Add `normalization: { caseLocale: "..." }` only when the pack needs
+locale-specific lowercasing. It must be a valid JavaScript locale.

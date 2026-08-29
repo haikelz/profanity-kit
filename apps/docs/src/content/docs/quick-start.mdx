@@ -1,0 +1,27 @@
+---
+title: Quick Start
+description: Install Profanity Kit and run your first detector.
+sidebar:
+  badge:
+    text: Start here
+    variant: tip
+  order: 2
+---
+
+## Install
+
+<PackageManagers pkg="profanity-kit" />
+
+## Create a detector
+
+```ts
+import { createDetector } from "profanity-kit";
+
+const detector = createDetector();
+detector.check("This contains shit"); // true
+detector.isClean("This is fine"); // true
+detector.filter("hide the shit"); // "hide the ****"
+```
+
+`findAll()` returns ordered match details when you need offsets or language
+codes. Next, choose [languages](/core-concepts/languages) or learn [matching](/core-concepts/matching).

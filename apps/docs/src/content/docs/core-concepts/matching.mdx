@@ -1,0 +1,30 @@
+---
+title: How Matching Works
+description: Learn the boundaries, normalization, ordering, and offsets behind detection.
+sidebar:
+  order: 4
+---
+
+Detection is whole-word matching. A configured `ass` matches in `ass!`, but not
+inside `classic` or `assessment`:
+
+```ts
+detector.check("classic assessment"); // false
+detector.check("ass!"); // true
+```
+
+Letters, combining marks, and numbers belong to a word. Punctuation,
+whitespace, apostrophes, hyphens, and underscores are boundaries. Input and
+dictionary entries use NFC normalization followed by lowercase casing.
+
+`findAll()` scans the complete input, returns matches in source order, and
+keeps repeated occurrences. Match `start` and `end` are UTF-16 offsets into the
+original string. `filter()` replaces only matched spans and preserves all other
+text.
+
+`check()` exits as soon as it finds a match; `isClean()` is its readable
+inverse. Both are closure-backed and safe as callbacks:
+
+```ts
+comments.filter(detector.isClean);
+```

@@ -1,0 +1,23 @@
+---
+title: Configuration
+description: Understand detector options, precedence, and immutability.
+sidebar:
+  order: 6
+---
+
+The detector configuration is immutable. Create a new detector when rules
+change. Options are resolved with this precedence:
+
+```text
+allowList
+    ↓ wins over
+blockList
+    ↓
+language dictionaries
+```
+
+`blockList` adds application-specific whole words. `allowList` suppresses a
+word even when it comes from a built-in pack. `replacement` sets the default
+single code point used by `filter()`.
+
+See [Customization](/guides/customization) for task-oriented recipes.

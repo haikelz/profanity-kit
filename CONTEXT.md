@@ -4,7 +4,16 @@ Profanity Kit is a TypeScript workspace for building and documenting the `profan
 
 ## Glossary
 
-Add established domain terms here as they emerge. Prefer these terms consistently in code, tests, documentation, and issue descriptions.
+- **Profanity detection toolkit** — the product category: matching mechanisms,
+  language dictionaries, and customization primitives. It is not a complete
+  moderation policy or universal source of truth.
+- **Language pack** — a versioned, readonly collection of whole-word entries
+  for one language or community, selected explicitly by a detector.
+- **Dictionary** — the word data contained by a language pack; dictionaries are
+  reviewed defaults and may be overridden by application rules.
+- **Allowlist** — entries that remain permitted and take precedence over both
+  blocklist entries and language dictionaries.
+- **Blocklist** — application-specific whole-word entries added to a detector.
 
 ## Context boundaries
 

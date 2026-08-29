@@ -6,3 +6,5 @@ allowBuilds:
   lefthook: true
   sharp: true
   workerd: true
+minimumReleaseAgeExclude:
+  - zod@4.5.2

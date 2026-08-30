@@ -1,247 +1,99 @@
-# Profanity Kit
+<p align="center">
+  <a href="https://profanity-kit.up2dul.dev">
+    <img src="https://raw.githubusercontent.com/up2dul/profanity-kit/main/apps/docs/public/icon.svg" alt="" width="120" height="120">
+  </a>
+</p>
 
-A lightweight, multilingual profanity detector for JavaScript and TypeScript.
+<h1 align="center">Profanity Kit</h1>
 
-Profanity Kit is designed for applications that need predictable, synchronous
-word filtering without shipping a moderation service or an opaque machine
-learning model. It prioritizes Unicode-aware whole-word matching, explicit
-language selection, useful match metadata, and controlled false positives.
+<p align="center">
+  A lightweight, multilingual profanity detector for JavaScript and TypeScript.
+</p>
 
-> [!IMPORTANT]
-> Profanity Kit is in early development and is not yet published to npm. The
-> examples below describe the accepted API contract that is being implemented.
-> Follow the [implementation plan](./IMPLEMENTATION_PLAN.md) for current progress.
+<p align="center">
+  <a href="https://github.com/up2dul/profanity-kit/actions/workflows/quality.yaml"><img src="https://github.com/up2dul/profanity-kit/actions/workflows/quality.yaml/badge.svg" alt="Quality"></a>
+  <a href="https://github.com/up2dul/profanity-kit/blob/main/LICENSE"><img src="https://img.shields.io/github/license/up2dul/profanity-kit" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/node-%3E%3D22.13.0-339933?logo=node.js&logoColor=white" alt="Node.js 22.13.0 or newer">
+  <img src="https://img.shields.io/badge/status-pre--release-f59e0b" alt="Pre-release">
+</p>
+
+<p align="center">
+  <a href="https://profanity-kit.up2dul.dev">Documentation</a> ·
+  <a href="https://profanity-kit.up2dul.dev/playground">Playground</a> ·
+  <a href="https://github.com/up2dul/profanity-kit">GitHub</a>
+</p>
+
+Profanity Kit provides predictable, synchronous word filtering without a
+moderation service or an opaque machine-learning model. It is a deterministic
+profanity detection toolkit, not a contextual moderation or toxicity
+classifier.
 
 ## Why Profanity Kit?
 
-- **Predictable matching** — dictionary-based detection produces deterministic
-  results and never depends on a network request.
-- **Unicode-aware boundaries** — words are tokenized using Unicode properties,
-  avoiding the ASCII limitations of JavaScript's `\b` boundary.
-- **Language-pack isolation** — applications can import English, Indonesian, or
-  both without silently bundling an unused dictionary.
-- **Transparent results** — inspect every occurrence, its original source
-  offsets, its language dictionaries, and whether it came from a custom list.
-- **Immutable configuration** — reusable detector instances have no shared
-  mutable dictionary or callback-unsafe `this` behavior.
-- **Runtime agnostic** — the core is synchronous and avoids Node, DOM,
-  filesystem, network, and environment APIs.
-- **Zero runtime dependencies** — the published library is designed to remain
-  self-contained.
+- Unicode-aware, whole-word matching
+- Explicit, bundle-friendly language packs
+- Detailed match metadata with source offsets
+- Immutable detector configuration
+- Synchronous and runtime agnostic
+- Zero runtime dependencies
 
-## Planned API
+## Installation
 
-### English by default
+> Profanity Kit is in pre-release. The `next` channel will become available
+> during the release rehearsal.
 
-The root entry point is the zero-configuration English convenience API:
+| Package manager | Command                          |
+| --------------- | -------------------------------- |
+| npm             | `npm install profanity-kit@next` |
+| pnpm            | `pnpm add profanity-kit@next`    |
+| Yarn            | `yarn add profanity-kit@next`    |
+| Bun             | `bun add profanity-kit@next`     |
+
+## Quick start
+
+The root entry point includes the English language pack:
 
 ```ts
 import { createDetector } from "profanity-kit";
 
 const detector = createDetector();
 
-detector.check("This contains a blocked word."); // true
-detector.isClean("This sentence is safe."); // true
-detector.findAll("A blocked word appears twice: word, word.");
-detector.filter("Replace the blocked word.");
+detector.check("This contains shit"); // true
+detector.filter("Hide the shit"); // "Hide the ****"
 ```
 
-### Select languages explicitly
-
-The dictionary-free core keeps language choice structural and bundle-friendly:
+Use the dictionary-free core when selecting another language explicitly:
 
 ```ts
 import { createDetector } from "profanity-kit/core";
 import { indonesian } from "profanity-kit/languages/id";
 
-const detector = createDetector({
-  languages: [indonesian],
-});
+const detector = createDetector({ languages: [indonesian] });
+
+detector.check("Dasar goblok"); // true
+detector.filter("Dasar goblok"); // "Dasar ******"
 ```
 
-Use multiple packs when an application accepts content in more than one
-language:
+## Learn more
 
-```ts
-import { createDetector } from "profanity-kit/core";
-import { english } from "profanity-kit/languages/en";
-import { indonesian } from "profanity-kit/languages/id";
+- [Quick Start](https://profanity-kit.up2dul.dev/quick-start)
+- [Playground](https://profanity-kit.up2dul.dev/playground)
+- [Languages and dictionaries](https://profanity-kit.up2dul.dev/core-concepts/languages)
+- [Customization](https://profanity-kit.up2dul.dev/guides/customization)
+- [Integrations](https://profanity-kit.up2dul.dev/guides/integrations)
+- [API reference](https://profanity-kit.up2dul.dev/api/detector)
 
-const detector = createDetector({
-  languages: [english, indonesian],
-});
-```
+## Compatibility
 
-Language packs are deliberately not re-exported from the package root. An
-Indonesian-only application should not pay the bundle cost of English data.
-
-### Customize a detector
-
-Configuration is captured when a detector is created:
-
-```ts
-const detector = createDetector({
-  languages: [indonesian],
-  allowList: ["allowed-project-term"],
-  blockList: ["blocked-project-term"],
-  replacement: "*",
-});
-```
-
-Dictionary precedence is:
-
-```text
-allowList > blockList > built-in language dictionaries
-```
-
-Changing configuration means creating another detector. Profanity Kit does not
-expose global `addWords()` or `removeWords()` mutation.
-
-### Inspect matches
-
-`findAll()` returns every occurrence in source order, including repeats:
-
-```ts
-const matches = detector.findAll("goblok, jangan goblok");
-
-// [
-//   {
-//     value: "goblok",
-//     normalized: "goblok",
-//     start: 0,
-//     end: 6,
-//     languages: ["id"],
-//     source: "dictionary",
-//   },
-//   {
-//     value: "goblok",
-//     normalized: "goblok",
-//     start: 15,
-//     end: 21,
-//     languages: ["id"],
-//     source: "dictionary",
-//   },
-// ]
-```
-
-Offsets refer to UTF-16 code units in the original input, matching JavaScript's
-string indexing and slicing behavior.
-
-## Matching semantics
-
-Profanity Kit matches complete words rather than arbitrary substrings. A short
-dictionary entry therefore does not match when it only appears inside a longer
-word. Related terms must be listed independently.
-
-The MVP tokenizer treats Unicode letters, combining marks, and numbers as word
-characters. Apostrophes, hyphens, underscores, punctuation, and whitespace are
-boundaries. Input is normalized to NFC and lowercased for lookup while original
-text and offsets are preserved in results.
-
-The initial release intentionally does not attempt:
-
-- contextual moderation or toxicity classification;
-- phrase or substring matching;
-- aggressive leetspeak or evasion detection;
-- automatic diacritic folding;
-- mutable global dictionaries.
-
-These boundaries keep behavior explainable and reduce surprising false
-positives.
-
-## Runtime and package targets
-
-The planned package exports are:
-
-```text
-profanity-kit
-profanity-kit/core
-profanity-kit/languages/en
-profanity-kit/languages/id
-```
-
-Profanity Kit targets modern browsers and Node.js 22.13.0 or newer. It publishes
-one synchronous ESM implementation with TypeScript declarations. Modern Node
-`require()` support will resolve to that same ESM graph instead of a duplicate
-CommonJS build.
-
-## Development
-
-### Prerequisites
-
-- Node.js 22.13.0 or newer
-- pnpm 11.23.0 through Corepack
-
-### Set up the workspace
-
-```sh
-corepack enable
-pnpm install
-pnpm check
-```
-
-The root validation command runs formatting checks, type-aware linting,
-TypeScript checks for every workspace, and tests.
-
-Useful commands:
-
-```sh
-pnpm format          # Format the workspace with Oxfmt
-pnpm lint            # Run type-aware Oxlint
-pnpm typecheck       # Type-check all workspaces
-pnpm test            # Run Vitest once
-pnpm test:watch      # Run Vitest in watch mode
-pnpm build           # Build the publishable package
-pnpm changeset       # Describe a user-visible package change
-```
-
-Lefthook installs local formatting, linting, commit-message, and pre-push
-checks. Commits follow the Conventional Commits format.
-
-## Repository layout
-
-```text
-.
-├── apps/docs/                    Documentation application
-├── packages/profanity-kit/       Publishable library
-├── docs/adr/                     Architectural decision records
-├── API_DESIGN.md                 Detailed public API contract
-├── CONTEXT.md                    Shared domain vocabulary
-└── IMPLEMENTATION_PLAN.md        Phased delivery plan and gates
-```
-
-The project uses a pnpm workspace without a separate task orchestrator. Root
-tooling validates the private docs application and publishable package together,
-while `profanity-kit` keeps an empty runtime dependency set.
-
-## Roadmap
-
-The project is being delivered through evidence-based phases:
-
-1. Repository foundation
-2. Matcher proof of concept
-3. Package boundaries and artifact validation
-4. Deterministic dictionary pipeline
-5. Performance and bundle evidence
-6. Documentation MVP
-7. Release rehearsal and real-project integration
-
-See [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) for each phase's scope and
-completion gate. Detailed API decisions live in
-[API_DESIGN.md](./API_DESIGN.md), with architectural rationale under
-[docs/adr](./docs/adr/).
+Profanity Kit supports Node.js 22.13.0 or newer and modern browsers under the
+Baseline Widely Available policy. It ships as ESM with TypeScript declarations.
 
 ## Contributing
 
-Contributions are welcome once they align with the documented API and
-architectural decisions. Read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening
-a pull request. Bug reports and design discussions belong in
-[GitHub Issues](https://github.com/up2dul/profanity-kit/issues).
-
-Dictionary contributions require special care: every distributed entry must be
-human-reviewed and backed by compatible licensing or project-owned curation.
-Public availability alone is not permission to copy a word list.
+Contributions are welcome. Read the
+[contribution guide](https://github.com/up2dul/profanity-kit/blob/main/CONTRIBUTING.md)
+before opening an issue or pull request.
 
 ## License
 
-Profanity Kit source code is available under the [MIT License](./LICENSE).
+[MIT](https://github.com/up2dul/profanity-kit/blob/main/LICENSE)

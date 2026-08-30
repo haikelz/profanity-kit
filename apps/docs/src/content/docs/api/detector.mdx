@@ -242,8 +242,8 @@ A filtered string, or the unchanged input when there are no matches.
 ### Example
 
 ```ts
-const detector = createDetector({ replacement: "•" });
-detector.filter("hide this shit"); // => "hide this ••••"
+const detector = createDetector({ replacement: "#" });
+detector.filter("hide this shit"); // => "hide this ####"
 detector.filter("hide this shit", { replacement: "😀" });
 // => "hide this 😀😀😀😀"
 ```

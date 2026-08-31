@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../components";
 
 /* ============================================================
  * Nimbus Theme — THE file you edit to customize your site.

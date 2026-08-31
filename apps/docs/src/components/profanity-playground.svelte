@@ -91,32 +91,64 @@
   });
   $: matches = detector.findAll(input);
   $: filtered = detector.filter(input);
-  $: example = `${language === "en" ? 'import { createDetector } from "profanity-kit";' : 'import { createDetector } from "profanity-kit/core";'}${language !== "en" ? '\nimport { english } from "profanity-kit/languages/en";\nimport { indonesian } from "profanity-kit/languages/id";' : ""}\n\nconst detector = createDetector({${
-    language === "en" &&
-    !blockList &&
-    !allowList &&
-    (!replacement || replacement === "*")
-      ? ""
-      : `\n  ${language === "en" ? "" : `languages: [${language === "id" ? "indonesian" : "english, indonesian"}],`}\n  ${
-          blockList
-            ? `blockList: ${JSON.stringify(
-                blockList
-                  .split(",")
-                  .map((word) => word.trim())
-                  .filter(Boolean)
-              )},`
-            : ""
-        }\n  ${
-          allowList
-            ? `allowList: ${JSON.stringify(
-                allowList
-                  .split(",")
-                  .map((word) => word.trim())
-                  .filter(Boolean)
-              )},`
-            : ""
-        }\n  ${replacement && replacement !== "*" ? `replacement: ${JSON.stringify(replacement)},` : ""}\n`
-  }});\ndetector.filter(${JSON.stringify(input)});`;
+  $: example = generateExample(
+    language,
+    input,
+    blockList,
+    allowList,
+    replacement
+  );
+
+  function generateExample(
+    selectedLanguage: Language,
+    selectedInput: string,
+    selectedBlockList: string,
+    selectedAllowList: string,
+    selectedReplacement: string
+  ) {
+    const imports = [
+      'import { createDetector } from "profanity-kit/core";',
+      ...(selectedLanguage !== "id"
+        ? ['import { english } from "profanity-kit/languages/en";']
+        : []),
+      ...(selectedLanguage !== "en"
+        ? ['import { indonesian } from "profanity-kit/languages/id";']
+        : []),
+    ];
+    const languageOption =
+      selectedLanguage === "en"
+        ? "english"
+        : selectedLanguage === "id"
+          ? "indonesian"
+          : "english, indonesian";
+    const options = [`languages: [${languageOption}],`];
+
+    if (selectedBlockList) {
+      options.push(
+        `blockList: ${JSON.stringify(
+          selectedBlockList
+            .split(",")
+            .map((word) => word.trim())
+            .filter(Boolean)
+        )},`
+      );
+    }
+    if (selectedAllowList) {
+      options.push(
+        `allowList: ${JSON.stringify(
+          selectedAllowList
+            .split(",")
+            .map((word) => word.trim())
+            .filter(Boolean)
+        )},`
+      );
+    }
+    options.push(`replacement: ${JSON.stringify(selectedReplacement || "*")},`);
+
+    const detector = `const detector = createDetector({\n${options.map((option) => `  ${option}`).join("\n")}\n});`;
+
+    return `${imports.join("\n")}\n\n${detector}\ndetector.filter(${JSON.stringify(selectedInput)});`;
+  }
 
   function applyPreset(value: Preset) {
     preset = value;
@@ -128,6 +160,10 @@
     replacement = "*";
   }
 
+  function formatLanguage(code: string) {
+    return code === "en" ? "English" : code === "id" ? "Indonesian" : code;
+  }
+
   async function copyExample() {
     await navigator.clipboard.writeText(example);
     copied = true;
@@ -136,87 +172,91 @@
 </script>
 
 <div
-  class="not-prose border-border bg-card mt-3 rounded-xl border p-5 shadow-sm"
+  class="not-prose border-border bg-card mt-3 rounded-xl border p-4 shadow-sm sm:p-6"
 >
-  <label class="grid gap-1 text-sm font-medium">
-    Example preset
-    <select
-      bind:value={preset}
-      on:change={() => applyPreset(preset)}
-      class="border-border bg-background rounded-md border px-3 py-2 font-normal"
+  <div
+    class="grid gap-4 md:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(7rem,0.5fr)]"
+  >
+    <label
+      class="grid min-w-0 content-start gap-1.5 text-sm font-medium md:col-span-2 lg:col-span-1"
     >
-      {#each Object.entries(presets) as [value, option]}
-        <option {value}>{option.label}</option>
-      {/each}
-    </select>
-  </label>
-
-  <div class="mt-4 grid gap-4 sm:grid-cols-2">
-    <label class="grid gap-1 text-sm font-medium">
+      Example preset
+      <select
+        bind:value={preset}
+        on:change={() => applyPreset(preset)}
+        class="border-border bg-background focus-visible:ring-ring min-h-10 w-full min-w-0 rounded-lg border px-3 py-2 font-normal outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+      >
+        {#each Object.entries(presets) as [value, option]}
+          <option {value}>{option.label}</option>
+        {/each}
+      </select>
+    </label>
+    <label class="grid min-w-0 gap-1.5 text-sm font-medium">
       Language
       <select
         bind:value={language}
-        class="border-border bg-background rounded-md border px-3 py-2 font-normal"
+        class="border-border bg-background focus-visible:ring-ring min-h-10 w-full min-w-0 rounded-lg border px-3 py-2 font-normal outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       >
         <option value="en">English</option>
         <option value="id">Indonesian</option>
         <option value="both">English + Indonesian</option>
       </select>
     </label>
-    <label class="grid gap-1 text-sm font-medium">
+    <label class="grid min-w-0 gap-1.5 text-sm font-medium">
       Replacement
       <input
         bind:value={replacement}
-        maxlength="2"
-        class="border-border bg-background rounded-md border px-3 py-2 font-normal"
+        maxlength="1"
+        class="border-border bg-background focus-visible:ring-ring min-h-10 w-full min-w-0 rounded-lg border px-3 py-2 font-normal outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       />
     </label>
   </div>
 
-  <label class="mt-4 grid gap-1 text-sm font-medium">
+  <label class="mt-5 grid min-w-0 gap-1.5 text-sm font-medium">
     Text to inspect
     <textarea
       bind:value={input}
       rows="4"
-      class="border-border bg-background rounded-md border px-3 py-2 font-normal"
+      maxlength="280"
+      class="border-border bg-background focus-visible:ring-ring min-h-28 w-full min-w-0 resize-y rounded-lg border px-3 py-2.5 leading-relaxed font-normal outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
     ></textarea>
   </label>
 
-  <div class="mt-4 grid gap-4 sm:grid-cols-2">
-    <label class="grid gap-1 text-sm font-medium">
-      Block list <span class="text-muted-foreground font-normal"
-        >comma-separated</span
+  <div class="mt-4 grid gap-4 md:grid-cols-2">
+    <label class="grid min-w-0 gap-1.5 text-sm font-medium">
+      <span
+        >Block list <span class="text-muted-foreground font-normal"
+          >· comma-separated</span
+        ></span
       >
       <input
         bind:value={blockList}
-        class="border-border bg-background rounded-md border px-3 py-2 font-normal"
+        class="border-border bg-background focus-visible:ring-ring min-h-10 w-full min-w-0 rounded-lg border px-3 py-2 font-normal outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       />
     </label>
-    <label class="grid gap-1 text-sm font-medium">
-      Allow list <span class="text-muted-foreground font-normal"
-        >comma-separated</span
+    <label class="grid min-w-0 gap-1.5 text-sm font-medium">
+      <span
+        >Allow list <span class="text-muted-foreground font-normal"
+          >· comma-separated</span
+        ></span
       >
       <input
         bind:value={allowList}
-        class="border-border bg-background rounded-md border px-3 py-2 font-normal"
+        class="border-border bg-background focus-visible:ring-ring min-h-10 w-full min-w-0 rounded-lg border px-3 py-2 font-normal outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       />
     </label>
   </div>
 
-  <dl class="mt-5 grid gap-3 sm:grid-cols-4">
-    <div class="bg-muted rounded-md p-3">
+  <dl class="mt-6 grid gap-3 sm:grid-cols-3">
+    <div class="bg-muted rounded-lg p-3">
       <dt class="text-muted-foreground text-xs">Contains profanity</dt>
       <dd class="mt-1 font-semibold">{detector.check(input) ? "Yes" : "No"}</dd>
     </div>
-    <div class="bg-muted rounded-md p-3">
+    <div class="bg-muted rounded-lg p-3">
       <dt class="text-muted-foreground text-xs">Matches</dt>
       <dd class="mt-1 font-semibold">{matches.length}</dd>
     </div>
-    <div class="bg-muted rounded-md p-3">
-      <dt class="text-muted-foreground text-xs">Filtered output</dt>
-      <dd class="mt-1 font-mono text-sm break-words">{filtered}</dd>
-    </div>
-    <div class="bg-muted rounded-md p-3">
+    <div class="bg-muted rounded-lg p-3">
       <dt class="text-muted-foreground text-xs">isClean()</dt>
       <dd class="mt-1 font-semibold">
         {detector.isClean(input) ? "true" : "false"}
@@ -224,28 +264,82 @@
     </div>
   </dl>
 
+  <section class="mt-5 grid gap-1.5" aria-labelledby="filtered-output-heading">
+    <h3 id="filtered-output-heading" class="text-sm font-semibold">
+      Filtered output
+    </h3>
+    <div
+      class="border-border bg-background min-w-0 rounded-lg border px-4 py-3"
+    >
+      <p
+        class="font-mono text-sm leading-relaxed break-words whitespace-pre-wrap"
+      >
+        {filtered}
+      </p>
+    </div>
+  </section>
+
   {#if matches.length > 0}
-    <ul class="mt-4 grid gap-2 text-sm">
-      {#each matches as match}
-        <li class="border-border rounded-md border p-2">
-          <code>{match.value}</code> · {match.start}–{match.end} · {match.languages.join(
-            ", "
-          )}
-        </li>
-      {/each}
-    </ul>
+    <section class="mt-4" aria-labelledby="detected-matches-heading">
+      <div class="mb-2 flex items-center justify-between gap-3">
+        <h3 id="detected-matches-heading" class="text-sm font-semibold">
+          Detected matches
+        </h3>
+        <span class="text-muted-foreground text-xs">
+          {matches.length}
+          {matches.length === 1 ? "match" : "matches"}
+        </span>
+      </div>
+      <ul
+        class="border-border bg-background divide-border divide-y overflow-hidden rounded-lg border text-sm"
+      >
+        {#each matches as match}
+          <li
+            class="grid min-w-0 gap-3 px-3 py-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:px-4"
+          >
+            <div class="min-w-0">
+              <span class="text-muted-foreground block text-xs"
+                >Matched word</span
+              >
+              <code class="mt-1 inline-block max-w-full truncate font-semibold">
+                {match.value}
+              </code>
+            </div>
+            <div>
+              <span class="text-muted-foreground block text-xs"
+                >Character range</span
+              >
+              <span class="mt-1 block font-mono">{match.start}–{match.end}</span
+              >
+            </div>
+            <div class="sm:min-w-24">
+              <span class="text-muted-foreground block text-xs">Language</span>
+              <span class="mt-1 block">
+                {match.languages.map(formatLanguage).join(", ")}
+              </span>
+            </div>
+          </li>
+        {/each}
+      </ul>
+    </section>
   {/if}
 
-  <div class="mt-5 flex items-center justify-between gap-3">
-    <pre
-      class="bg-muted min-w-0 flex-1 overflow-x-auto rounded-md p-3 text-xs"><code
+  <div class="bg-muted relative mt-6 overflow-hidden rounded-lg">
+    <div
+      class="border-border flex items-center justify-between border-b px-3 py-2"
+    >
+      <span class="text-muted-foreground text-xs font-medium"
+        >Generated example</span
+      >
+      <button
+        type="button"
+        on:click={copyExample}
+        class="bg-primary text-primary-foreground focus-visible:ring-ring min-h-9 shrink-0 cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-[scale,opacity] duration-150 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-96"
+        >{copied ? "Copied" : "Copy code"}</button
+      >
+    </div>
+    <pre class="min-w-0 overflow-x-auto p-4 text-xs leading-relaxed"><code
         >{example}</code
       ></pre>
-    <button
-      type="button"
-      on:click={copyExample}
-      class="bg-primary text-primary-foreground shrink-0 rounded-md px-3 py-2 text-sm"
-      >{copied ? "Copied" : "Copy code"}</button
-    >
   </div>
 </div>
